@@ -11,28 +11,171 @@
 //As our previous Battleship, the winner is the player that hits the 4 opponent's ships first
 //one more Thing create a 'reset' and a 'new game' buttons as childs of the element with the id 'buttons'. the reset button has to start the game again and the new game create a new game with new players and a new random board.
 
-const board_Player1 = document.getElementById('board_player1');
+// ADDING RESET BUTTON
 
-for (var x = 0; x < 4; x++) {
+    var reset = document.createElement('button');
+    reset.className = 'button';
+    reset.textContent = 'reset';
 
-    const li = document.createElement('li'); // creating childs for the list (board), in this case represent a row number 'x' of the board
+    reset.addEventListener('click', (e) => {
+      if(player1.lives < 4 || player2.lives < 4) {
+        player1.lives = 4
+        player2.lives = 4
 
-    for (var y = 0; y < 4; y++) {
-      const cell = document.createElement('div');
-      cell.className = "square"; // adding css properties to make it looks like a square
-      cell.textContent = `${x},${y}`;  // saves the coordinates as a string value 'x,y'
-      cell.value = 0;//state of the cell
+        const live1 = document.getElementById(`ships_player1`); 
+        live1.innerHTML = player1.lives;
 
-      //this function adds the click event to each cell
-      cell.addEventListener( 'click', (e) => {
-          let cell = e.target; // get the element clicked
-          console.log( cell.textContent) //display the coordinates in the console
-          cell.style.visibility = 'hidden';// this  means that the contents of the element will be invisible, but the element stays in its original position and size / try it clicking on any of the black cells (in your browser) and see whats happens
-          //cell.style.background ="purple"; //with this propertie you can change the background color of the clicked cell. try comment the line bellow and uncomment this line. Do not forget to save this file and refresh the borwser to see the changes
-      });
+        const live2 = document.getElementById(`ships_player2`); 
+        live2.innerHTML = player2.lives
+      } 
 
-      li.appendChild(cell); //adding each cell into the row number x
+    });
+
+    const buttons = document.getElementById('buttons'); // This element is global variable, so there is no need to select it again for the 'new' button
+    buttons.appendChild(reset);
+
+// PRINCIPAL FUNCTION THAT MAKES THE GAME WORK
+
+  const initializeBoard = (id, player, opponent) => { //This function makes everything work
+    const board = document.getElementById(`board_player${id}`); 
+
+    //Place boats randomly
+    while(player.ships < 4) {
+        const x = Math.floor(Math.random() * 4);
+        const y = Math.floor(Math.random() * 4);
+
+        if (player.board[x][y] == 0) {
+            player.board[x][y] = 1;
+            player.ships += 1;
+        }
     }
 
-     board_Player1.appendChild(li); //adding each row into the board
-}
+    //const lives = document.querySelectorAll(`#ship_player${id}`).innerHTML = player.lives; // Select the 'Lives' html element and display the number of lives on the page
+    //lives.innerHTML = player.lives;
+
+    for (var x = 0; x < 4; x++) { // Creates the board
+
+        const li = document.createElement('li'); //creating childs for the list (board)
+
+        for (var y = 0; y < 4; y++) {
+            const cell = document.createElement('div');
+            cell.className = 'square'; // adding css properties to make it look like a square
+            cell.textContent = `${x},${y}`//: ${player.board[x][y]}`; // saves the coordinates as a string value 'x,y' and if you uncomment the last piece of code it show if there is a ship inside the cell (a number 1)
+            cell.value = player.board[x][y]; // state of the cell
+            cell.x = x;
+            cell.y = y;
+
+            //This function adds the click event to each cell
+            cell.addEventListener('click', (e) => {
+              if (!player.playing){
+                  return;
+              }
+
+              let cell = e.target; // get element clicked 
+              console.log( cell.textContent) // display the coordinates in the console
+              //cell.style.visibility = 'hidden';
+              cell.style.background ="pink"; // Change the color of the cell when it's clicked
+              
+              if (e.target.value == 1) { // if the cell that is clicked contains a ship (a number 1) 
+                  player.ships -= 1; // The number of ships decreases
+                  player.lives -= 1; // The number of lives decreases
+                  const lives = document.getElementById(`ships_player${id}`); 
+                  lives.innerHTML = player.lives; // Display the number of lives on the page  
+               } 
+
+                player.playing = false;  
+                opponent.playing = true;
+               
+                const turn = document.getElementById('turn_player');
+                turn.innerHTML = opponent.name; // Display who's turn is
+
+                // Display who is the winner based on the number of lives of the opponent
+                if (opponent.lives === 0) { 
+                  turn.innerHTML = `Congratulations ${player.name} ,you WON!!!`;
+                } else {
+                  return;
+                }
+
+                if (player.lives === 0) {
+                  turn.innerHTML = `Congratulations ${opponent.name} ,you WON!!!`;
+                } else {
+                  return;
+                }
+
+                console.log(e.targeted); //Show in the console the coordinates of the cell that was clicked
+            });
+
+            li.appendChild(cell); // adding each cell into the row number x
+
+            reset.addEventListener('click', () => { // Turn the color of the cell back to black when the ''reset'' button is clicked
+            cell.style.background ="black"; 
+            });
+
+        }
+
+        board.appendChild(li); // adding each row into the board
+
+    }
+
+  };
+
+
+// OBJECTS THAT STORE THE PLAYERS'S DATA
+
+  const player1 = {
+    name:'',
+    lives: 4,
+    ships: 0,
+    playing: true,
+    board: [
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ]
+  };
+    
+  const player2 = {
+    name:'',
+    lives: 4,
+    ships: 0,
+    playing: false,
+    board: [
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ]
+  };
+
+//CALLING THE MAIN FUNCTION TO MAKE THE GAME WORK
+  initializeBoard( 1, player1, player2);
+  initializeBoard( 2, player2, player1);
+
+// ASK FOR THE NAME OF THE PLAYERS
+  player1.name = prompt('Player 1');
+  player2.name = prompt('Player 2');
+
+  const name = document.getElementById('name_player1');
+  name.innerHTML = player1.name;
+
+  const name2 = document.getElementById('name_player2');
+  name2.innerHTML = player2.name;
+
+  const turn = document.getElementById('turn_player');
+  turn.innerHTML = player1.name;
+
+  const lives = document.getElementById('ships_player1');
+  lives.innerHMTL = player1.lives;
+
+// ADDING THE 'new' BUTTON
+
+  const newGame = document.createElement('button'); // Creates the element 'button' on the DOM
+  newGame.className = 'button';
+  newGame.textContent = 'New';
+
+  newGame.addEventListener('click', (e) => {
+    window.location.reload(true); // This line of code refreshes the page, which is basically what the 'New' button does.
+  });
+
+  buttons.appendChild(newGame); 
